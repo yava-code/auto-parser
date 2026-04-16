@@ -18,6 +18,10 @@ app.conf.update(
 )
 
 app.conf.beat_schedule = {
+    "scrape-daily": {
+        "task": "tasks.celery_app.run_scraper",
+        "schedule": crontab(hour=1, minute=0),  # every day at 01:00 UTC
+    },
     "retrain-daily": {
         "task": "tasks.celery_app.train_model",
         "schedule": crontab(hour=2, minute=0),  # every day at 02:00 UTC

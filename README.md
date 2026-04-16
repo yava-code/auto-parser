@@ -19,6 +19,17 @@ flowchart LR
 
 ---
 
+## Screenshots
+
+<div align="center">
+  <img src="assets/screenshot_predict.png" width="30%" alt="Prediction Flow">
+  <img src="assets/screenshot_deals.png" width="30%" alt="Top Deals">
+  <img src="assets/screenshot_chart.png" width="30%" alt="Market Chart">
+  <p><i>(Placeholders for bot screenshots)</i></p>
+</div>
+
+---
+
 ## Tech Stack
 
 | Layer        | Technology                        |
