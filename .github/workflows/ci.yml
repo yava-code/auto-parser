@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "develop"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  lint-and-test:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install ruff pytest pytest-asyncio \
+            beautifulsoup4 lxml pandas scikit-learn numpy \
+            sqlalchemy python-telegram-bot==21.3 \
+            groq python-dotenv
+
+      - name: Lint with ruff
+        run: ruff check . --select E,F,W --ignore E501
+
+      - name: Run tests (no external services needed)
+        run: |
+          pytest tests/test_parser.py \
+                 tests/test_ai_utils.py \
+                 tests/test_preprocess.py \
+                 tests/test_usage.py \
+                 -v --tb=short
+
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t car-price-bot:ci .
+
+  ml-service-smoke:
+    name: ML Service Import Check
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install FastAPI deps
+        run: pip install fastapi uvicorn pydantic httpx
+
+      - name: Verify ml_service imports
+        run: python -c "from ml_service.schemas import PredictRequest, PredictResponse, ExplainResponse; print('schemas OK')"

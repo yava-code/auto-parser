@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, BigInteger, String, Float, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, BigInteger, String, Float, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -54,3 +54,18 @@ class UserUsage(Base):
     total_uses = Column(Integer, default=0, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)
+
+
+class UserAlert(Base):
+    __tablename__ = "user_alerts"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    telegram_id = Column(BigInteger, nullable=False, index=True)
+    brand = Column(String)
+    max_price_eur = Column(Float)
+    min_year = Column(Integer)
+    max_mileage_km = Column(Integer)
+    fuel_type = Column(String)
+    active = Column(Boolean, default=True, nullable=False)
+    last_notified_at = Column(DateTime)
+    created_at = Column(DateTime, default=datetime.utcnow)

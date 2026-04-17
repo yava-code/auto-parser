@@ -3,7 +3,6 @@ import sys
 import logging
 
 from dotenv import load_dotenv
-from telegram import BotCommand
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler,
     PreCheckoutQueryHandler, MessageHandler, filters,
@@ -20,6 +19,7 @@ from bot.handlers.chart import chart, send_chart
 from bot.handlers.predict import predict_conv_handler
 from bot.handlers.search import search_conv_handler, top5_command
 from bot.handlers.ai_chat import ai_conv_handler
+from bot.handlers.alert import alert_conv_handler, my_alerts, delete_alert_callback
 from bot.handlers.buy_stars import send_invoice, precheckout, successful_payment, buy_callback
 from bot.keyboards import main_menu
 
@@ -33,15 +33,12 @@ TOKEN = os.getenv("TELEGRAM_TOKEN")
 
 
 async def menu_callback(update, ctx):
-    """Route inline menu button presses to the appropriate handler."""
     query = update.callback_query
     await query.answer()
     data = query.data
 
     if data == "cmd_menu":
-        await query.message.reply_text(
-            "🏠 Main Menu", reply_markup=main_menu()
-        )
+        await query.message.reply_text("🏠 Main Menu", reply_markup=main_menu())
     elif data == "cmd_stats":
         await send_stats(query.message)
     elif data == "cmd_chart":
@@ -55,8 +52,8 @@ async def menu_callback(update, ctx):
         )
     elif data == "cmd_search":
         await query.message.reply_text(
-            "Use /search \\<brand\\> e\\.g\\. `/search BMW`\n"
-            "or /top5 \\<brand\\> for top 5 cheapest\\.",
+            "Use /search \\<brand\\> — e\\.g\\. `/search BMW`\n"
+            "or /top5 \\<brand\\> for a quick top\\-5 view\\.",
             parse_mode="MarkdownV2",
         )
     elif data == "cmd_ai":
@@ -84,24 +81,27 @@ def main():
 
     app = Application.builder().token(TOKEN).build()
 
-    # conversation handlers (must come before plain command handlers)
+    # conversation handlers first (priority)
     app.add_handler(predict_conv_handler())
     app.add_handler(search_conv_handler())
     app.add_handler(ai_conv_handler())
+    app.add_handler(alert_conv_handler())
 
-    # simple command handlers
+    # simple commands
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("stats", stats))
     app.add_handler(CommandHandler("top_deals", top_deals))
     app.add_handler(CommandHandler("chart", chart))
     app.add_handler(CommandHandler("top5", top5_command))
     app.add_handler(CommandHandler("buy", send_invoice))
+    app.add_handler(CommandHandler("myalerts", my_alerts))
 
-    # inline keyboard callbacks
+    # inline button callbacks
     app.add_handler(CallbackQueryHandler(menu_callback, pattern=r"^cmd_"))
     app.add_handler(CallbackQueryHandler(buy_callback, pattern=r"^buy_ai_uses$"))
+    app.add_handler(CallbackQueryHandler(delete_alert_callback, pattern=r"^del_alert_\d+$"))
 
-    # payment handlers
+    # payment
     app.add_handler(PreCheckoutQueryHandler(precheckout))
     app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment))
 
