@@ -24,23 +24,29 @@ def load_model():
     return _model, _enc
 
 
-def predict_price(brand, model_name, year, mileage_km, engine_l, fuel_type, transmission) -> float:
+def predict_price(brand, model_name, year, mileage_km, power_kw, fuel_type, transmission) -> float:
     m, enc = load_model()
 
+    CURRENT_YEAR = 2025
+    age = max(0, CURRENT_YEAR - int(year))
+    km_per_year = int(mileage_km) / (age + 1)
+    
     row = {
         "brand": brand,
         "model": model_name,
         "year": int(year),
         "mileage_km": int(mileage_km),
-        "engine_l": float(engine_l),
+        "power_kw": float(power_kw),
         "fuel_type": fuel_type,
         "transmission": transmission,
+        "age": age,
+        "km_per_year": km_per_year,
     }
     df = pd.DataFrame([row])
 
     # encode cats with the saved encoder (unknown → -1)
     cat_present = [c for c in CAT_COLS if c in df.columns]
-    df[cat_present] = enc.transform(df[cat_present].astype(str))
+    df[cat_present] = enc.transform(df[cat_present].astype(str)).astype(int)
     df = df.rename(columns={c: f"{c}_enc" for c in cat_present})
 
     feats = feature_cols(df)

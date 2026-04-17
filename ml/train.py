@@ -24,7 +24,7 @@ def load_raw() -> pd.DataFrame:
             return pd.DataFrame()
         return pd.DataFrame([{
             "brand": r.brand, "model": r.model, "year": r.year,
-            "mileage_km": r.mileage_km, "engine_l": r.engine_l,
+            "mileage_km": r.mileage_km, "power_kw": r.power_kw,
             "fuel_type": r.fuel_type, "transmission": r.transmission,
             "price_eur": r.price_eur,
         } for r in rows])
@@ -44,7 +44,9 @@ def save_clean(df: pd.DataFrame, predictions: list[float]):
                 model_enc=int(row.get("model_enc", -1)),
                 year=int(row["year"]),
                 mileage_km=int(row["mileage_km"]),
-                engine_l=float(row.get("engine_l", 0)),
+                power_kw=float(row.get("power_kw", 0)),
+                age=int(row.get("age", 0)),
+                km_per_year=float(row.get("km_per_year", 0)),
                 fuel_enc=int(row.get("fuel_type_enc", -1)),
                 trans_enc=int(row.get("transmission_enc", -1)),
                 price_eur=float(row[TARGET]),
@@ -104,6 +106,22 @@ def run_training():
     os.makedirs(MODEL_DIR, exist_ok=True)
     joblib.dump(model, MODEL_PATH)
     print(f"[train] model saved → {MODEL_PATH}")
+
+    # SHAP summary plot
+    try:
+        import shap
+        import matplotlib.pyplot as plt
+        os.makedirs("assets", exist_ok=True)
+        explainer = shap.TreeExplainer(model)
+        sample = X_test.sample(min(200, len(X_test)), random_state=42)
+        shap_vals = explainer.shap_values(sample)
+        shap.summary_plot(shap_vals, sample, show=False)
+        plt.tight_layout()
+        plt.savefig("assets/shap_summary.png", dpi=120, bbox_inches="tight")
+        plt.close()
+        print("[train] SHAP plot saved → assets/shap_summary.png")
+    except Exception as e:
+        print(f"[train] SHAP skipped: {e}")
 
     # predict on full df to store in clean_listings
     all_preds = model.predict(X).tolist()

@@ -11,7 +11,7 @@ from db.session import SessionLocal, init_db
 from db.models import RawListing
 from scraper.parser import scrape
 
-TARGET_URL = os.getenv("TARGET_URL", "https://www.autoscout24.com/lst")
+TARGET_URL = os.getenv("TARGET_URL", "https://www.otomoto.pl/osobowe")
 SCRAPE_PAGES = int(os.getenv("SCRAPE_PAGES", "5"))
 
 
@@ -45,7 +45,10 @@ def run(n_pages=None, url=None):
                     skipped_exists += 1
                     continue
                 
-                session.add(RawListing(**row))
+                # Check for engine_l if it existed before, and power_kw if it's there
+                db_row = dict(row)
+                
+                session.add(RawListing(**db_row))
                 session.commit()
                 inserted += 1
             except Exception as e:
@@ -54,6 +57,15 @@ def run(n_pages=None, url=None):
                 
     finally:
         session.close()
+
+    if rows:
+        fields = ["price_eur", "mileage_km", "year", "brand", "power_kw"]
+        print("\n[quality] null report:")
+        for f in fields:
+            n = sum(1 for r in rows if r.get(f) is None)
+            pct = n / len(rows) * 100
+            status = "⚠️" if pct > 30 else "✓"
+            print(f"  {status} {f}: {n}/{len(rows)} null ({pct:.1f}%)")
 
     print(f"[run] done — inserted: {inserted}, skipped (no URL): {skipped_no_url}, skipped (already exists): {skipped_exists}")
     return inserted

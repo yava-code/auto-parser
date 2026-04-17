@@ -53,18 +53,18 @@ async def get_mileage(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Enter a valid mileage (0 – 1,500,000 km).")
         return MILEAGE
     ctx.user_data["mileage_km"] = km
-    await update.message.reply_text("⚙️ Engine power in kW? (e.g. `110`)")
+    await update.message.reply_text("⚡ Engine power in kW? (e.g. `110` for ~150 hp)")
     return ENGINE
 
 
 async def get_engine(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     try:
-        eng = float(update.message.text.strip().replace(",", "."))
-        assert 10.0 <= eng <= 1000.0
+        kw = float(update.message.text.strip().replace(",", "."))
+        assert 10.0 <= kw <= 1000.0
     except (ValueError, AssertionError):
         await update.message.reply_text("❌ Enter engine power between 10 and 1000 kW.")
         return ENGINE
-    ctx.user_data["engine_l"] = eng
+    ctx.user_data["power_kw"] = kw
     await update.message.reply_text(
         "⛽ Fuel type?",
         reply_markup=ReplyKeyboardMarkup(FUEL_OPTIONS, one_time_keyboard=True, resize_keyboard=True),
@@ -100,7 +100,7 @@ async def get_brand(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     try:
         price = predict_price(
             d["brand"], d["model"], d["year"],
-            d["mileage_km"], d["engine_l"], d["fuel_type"], d["transmission"]
+            d["mileage_km"], d["power_kw"], d["fuel_type"], d["transmission"]
         )
     except Exception as e:
         await update.message.reply_text(f"⚠️ Prediction failed: {e}")
@@ -125,7 +125,7 @@ async def get_brand(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     msg = (
         f"✅ *Estimated fair price: €{price:,.0f}*\n\n"
         f"_{d['brand']} {d['model']} · {d['year']} · "
-        f"{d['mileage_km']:,} km · {d['engine_l']}L {d['fuel_type']} · {d['transmission']}_"
+        f"{d['mileage_km']:,} km · {d['power_kw']}kW {d['fuel_type']} · {d['transmission']}_"
         f"{delta_line}"
     )
     await update.message.reply_text(msg, parse_mode="Markdown")

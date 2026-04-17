@@ -89,7 +89,7 @@ After training, the bot is fully operational.
 |--------------|---------------------------------------------------------------|
 | `/start`     | Welcome message + list of commands                           |
 | `/stats`     | DB record count, avg prices per top-5 brands                 |
-| `/predict`   | Step-by-step dialog → estimated fair price                   |
+| `/predict`   | Step-by-step dialog: year → mileage → power (kW) → fuel → transmission → brand → estimated price |
 | `/top_deals` | Top 10 underpriced listings (real price ≥20% below predicted)|
 | `/chart`     | PNG scatter plot: price vs mileage                           |
 
@@ -166,8 +166,18 @@ car-price-bot/
 
 | Metric                       | Target          |
 |------------------------------|-----------------|
+| Data source                  | Otomoto.pl (Polish used car market) |
 | Model MAE on test set        | < 15% of median |
 | Bot `/predict` response time | < 3 seconds     |
 | Listings in DB at demo       | ≥ 500           |
 | Celery daily retraining      | ✓ no crash      |
+
+## Model Insights
+
+SHAP feature importance after training:
+
+![SHAP Summary](assets/shap_summary.png)
+
+> Generated automatically by `ml/train.py` after each training run.
+
 # auto-parser

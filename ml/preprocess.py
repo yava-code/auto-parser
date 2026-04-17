@@ -8,7 +8,7 @@ MODEL_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models")
 ENC_PATH = os.path.join(MODEL_DIR, "encoder.joblib")
 
 CAT_COLS = ["brand", "model", "fuel_type", "transmission"]
-NUM_COLS = ["year", "mileage_km", "engine_l"]
+NUM_COLS = ["year", "mileage_km", "power_kw", "age", "km_per_year"]
 TARGET = "price_eur"
 
 REQUIRED = ["brand", "year", "mileage_km", "price_eur"]
@@ -19,8 +19,9 @@ def clean_df(df: pd.DataFrame) -> pd.DataFrame:
     df = df.dropna(subset=REQUIRED).copy()
 
     # fill optional numerics with median
-    for col in ["engine_l"]:
-        df[col] = df[col].fillna(df[col].median())
+    for col in ["power_kw"]:
+        if col in df.columns:
+            df[col] = df[col].fillna(df[col].median())
 
     # fill optional categoricals with mode
     for col in ["fuel_type", "transmission", "model"]:
@@ -36,6 +37,12 @@ def clean_df(df: pd.DataFrame) -> pd.DataFrame:
     df = df[(df["year"] >= 1990) & (df["year"] <= 2025)]
     df = df[df["mileage_km"] >= 0]
 
+    # feature engineering
+    CURRENT_YEAR = 2025
+    df["age"] = CURRENT_YEAR - df["year"]
+    df["age"] = df["age"].clip(lower=0)
+    df["km_per_year"] = df["mileage_km"] / (df["age"] + 1)
+
     return df.reset_index(drop=True)
 
 
@@ -44,12 +51,12 @@ def encode_df(df: pd.DataFrame, fit=True) -> tuple[pd.DataFrame, OrdinalEncoder]
     cat_present = [c for c in CAT_COLS if c in df.columns]
 
     if fit:
-        df[cat_present] = enc.fit_transform(df[cat_present].astype(str))
+        df[cat_present] = enc.fit_transform(df[cat_present].astype(str)).astype(int)
         os.makedirs(MODEL_DIR, exist_ok=True)
         joblib.dump(enc, ENC_PATH)
     else:
         enc = joblib.load(ENC_PATH)
-        df[cat_present] = enc.transform(df[cat_present].astype(str))
+        df[cat_present] = enc.transform(df[cat_present].astype(str)).astype(int)
 
     # rename to *_enc columns so we know they're encoded
     rename = {c: f"{c}_enc" for c in cat_present}

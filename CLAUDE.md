@@ -113,12 +113,12 @@ TARGET_URL=https://example-cars.com/listings
 
 ```python
 # raw_listings — как пришло с сайта
-id, url, brand, model, year, mileage_km, engine_l,
+id, url, brand, model, year, mileage_km, power_kw,
 fuel_type, transmission, price_eur, scraped_at
 
 # clean_listings — после preprocessing
 id, raw_id, brand_enc, model_enc, year, mileage_km,
-engine_l, fuel_enc, trans_enc, price_eur
+power_kw, age, km_per_year, fuel_enc, trans_enc, price_eur
 ```
 
 ---
@@ -130,6 +130,10 @@ engine_l, fuel_enc, trans_enc, price_eur
 - Celery beat и worker — **два отдельных процесса**. В docker-compose это два отдельных сервиса.
 - При предикте бот загружает модель **один раз** при старте, не на каждый запрос.
 - Не используй `bot.run_polling()` внутри `asyncio.run()` если уже есть event loop (типичная ошибка с ptb v21).
+- Otomoto цены в PLN — конвертация 1 EUR ≈ 4.25 PLN захардкожена в parser.py. 
+  Если нужна актуальная ставка — вынести в .env как PLTEUR_RATE=4.25
+- power_kw конвертируется из KM (лошадиных сил) при парсинге: kw = round(km / 1.36)
+- SHAP требует обученной модели. assets/shap_summary.png генерится в train.py автоматически
 
 ---
 
