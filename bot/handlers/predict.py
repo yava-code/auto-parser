@@ -132,7 +132,7 @@ async def get_mileage(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return MILEAGE
     ctx.user_data["mileage_km"] = km
     await update.message.reply_text(
-        "Step 3/6 — ⚡ Engine power in kW? \\(e\\.g\\. `110` for ~150 hp\\)",
+        "Step 3/6 — ⚡ Engine power in kW? \\(e\\.g\\. `110` for \\~150 hp\\)",
         parse_mode="MarkdownV2",
     )
     return ENGINE
