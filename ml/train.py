@@ -23,7 +23,7 @@ def load_raw() -> pd.DataFrame:
         if not rows:
             return pd.DataFrame()
         return pd.DataFrame([{
-            "brand": r.brand, "model": r.model, "year": r.year,
+            "raw_id": r.id, "brand": r.brand, "model": r.model, "year": r.year,
             "mileage_km": r.mileage_km, "power_kw": r.power_kw,
             "fuel_type": r.fuel_type, "transmission": r.transmission,
             "price_eur": r.price_eur,

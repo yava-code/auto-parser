@@ -1,0 +1,25 @@
+[train] loaded 3033 raw rows
+[train] after cleaning: 2227 rows
+0:	learn: 9397.9364811	test: 8252.3977543	best: 8252.3977543 (0)	total: 49.9ms	remaining: 24.9s
+100:	learn: 5211.0441913	test: 4678.7064273	best: 4678.7064273 (100)	total: 297ms	remaining: 1.17s
+200:	learn: 4736.1390064	test: 4605.1372235	best: 4605.1372235 (200)	total: 504ms	remaining: 750ms
+300:	learn: 4423.9316417	test: 4598.3581413	best: 4592.8632911 (293)	total: 703ms	remaining: 465ms
+400:	learn: 4117.9203119	test: 4608.7384360	best: 4592.8632911 (293)	total: 900ms	remaining: 222ms
+499:	learn: 3896.0372972	test: 4607.9170422	best: 4592.8632911 (293)	total: 1.09s	remaining: 0us
+
+bestTest = 4592.863291
+bestIteration = 293
+
+Shrink model to first 294 iterations.
+
+[train] MAE: тВм3062  (31.7% of median тВм9647)
+[train] R┬▓:  0.7032
+[train] model saved тЖТ /app/models/car_model.joblib
+[train] SHAP plot saved тЖТ assets/shap_summary.png
+[train] DB save error: (psycopg2.errors.ForeignKeyViolation) insert or update on table "clean_listings" violates foreign key constraint "clean_listings_raw_id_fkey"
+DETAIL:  Key (raw_id)=(0) is not present in table "raw_listings".
+
+[SQL: INSERT INTO clean_listings (raw_id, brand_enc, model_enc, year, mileage_km, power_kw, age, km_per_year, fuel_enc, trans_enc, price_eur, predicted_price) SELECT p0::INTEGER, p1::INTEGER, p2::INTEGER, p3::INTEGER, p4::INTEGER, p5::FLOAT, p6::INTEGER, p ... 238692 characters truncated ...  p10, p11, sen_counter) ORDER BY sen_counter RETURNING clean_listings.id, clean_listings.id AS id__1]
+[parameters: {'model_enc__0': 907, 'km_per_year__0': 56.25, 'predicted_price__0': 20030.840393611168, 'year__0': 2022, 'raw_id__0': 0, 'age__0': 3, 'trans_enc__0': 0, 'price_eur__0': 11976.0, 'mileage_km__0': 225, 'fuel_enc__0': 2, 'power_kw__0': 165.0, 'brand_enc__0': 13, 'model_enc__1': 1157, 'km_per_year__1': 42.5, 'predicted_price__1': 25099.72137420091, 'year__1': 2022, 'raw_id__1': 0, 'age__1': 3, 'trans_enc__1': 0, 'price_eur__1': 16447.0, 'mileage_km__1': 170, 'fuel_enc__1': 1, 'power_kw__1': 3552.0, 'brand_enc__1': 1, 'model_enc__2': 365, 'km_per_year__2': 45.0, 'predicted_price__2': 20651.356987397852, 'year__2': 2021, 'raw_id__2': 0, 'age__2': 4, 'trans_enc__2': 0, 'price_eur__2': 9388.0, 'mileage_km__2': 225, 'fuel_enc__2': 2, 'power_kw__2': 165.0, 'brand_enc__2': 7, 'model_enc__3': 413, 'km_per_year__3': 27.714285714285715, 'predicted_price__3': 19867.151249395796, 'year__3': 2019, 'raw_id__3': 0, 'age__3': 6, 'trans_enc__3': 0, 'price_eur__3': 11741.0, 'mileage_km__3': 194, 'fuel_enc__3': 3, 'power_kw__3': 143.0, 'brand_enc__3': 28, 'model_enc__4': 419, 'km_per_year__4': 36.333333333333336 ... 11900 parameters truncated ... 'power_kw__995': 103.0, 'brand_enc__995': 13, 'model_enc__996': 296, 'km_per_year__996': 17.428571428571427, 'predicted_price__996': 15926.690247100174, 'year__996': 2019, 'raw_id__996': 0, 'age__996': 6, 'trans_enc__996': 0, 'price_eur__996': 17553.0, 'mileage_km__996': 122, 'fuel_enc__996': 2, 'power_kw__996': 90.0, 'brand_enc__996': 45, 'model_enc__997': 619, 'km_per_year__997': 24.333333333333332, 'predicted_price__997': 16041.143564613953, 'year__997': 2014, 'raw_id__997': 0, 'age__997': 11, 'trans_enc__997': 0, 'price_eur__997': 15035.0, 'mileage_km__997': 292, 'fuel_enc__997': 3, 'power_kw__997': 215.0, 'brand_enc__997': 13, 'model_enc__998': 625, 'km_per_year__998': 11.666666666666666, 'predicted_price__998': 6890.449285318829, 'year__998': 2017, 'raw_id__998': 0, 'age__998': 8, 'trans_enc__998': 1, 'price_eur__998': 3647.0, 'mileage_km__998': 105, 'fuel_enc__998': 0, 'power_kw__998': 77.0, 'brand_enc__998': 39, 'model_enc__999': 198, 'km_per_year__999': 7.6923076923076925, 'predicted_price__999': 20536.333166669305, 'year__999': 2000, 'raw_id__999': 0, 'age__999': 25, 'trans_enc__999': 0, 'price_eur__999': 27882.0, 'mileage_km__999': 200, 'fuel_enc__999': 0, 'power_kw__999': 147.0, 'brand_enc__999': 46}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+[train] clean_listings updated

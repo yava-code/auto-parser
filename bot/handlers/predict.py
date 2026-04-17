@@ -52,13 +52,13 @@ def _format_shap(contributions: dict, d: dict) -> str:
     }
 
     sorted_items = sorted(contributions.items(), key=lambda x: abs(x[1]), reverse=True)
-    lines = ["\n📊 *Price breakdown \\(SHAP\\):*"]
+    lines = ["\n📊 <b>Price breakdown (SHAP):</b>"]
     for feat, val in sorted_items[:6]:
         label = labels.get(feat, feat)
         if val >= 0:
-            lines.append(f"  🔼 {label}: `\\+€{val:,.0f}`")
+            lines.append(f"  🔼 {label}: <code>+€{val:,.0f}</code>")
         else:
-            lines.append(f"  🔽 {label}: `\\-€{abs(val):,.0f}`")
+            lines.append(f"  🔽 {label}: <code>-€{abs(val):,.0f}</code>")
     return "\n".join(lines)
 
 
@@ -92,8 +92,8 @@ async def predict_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         ml_svc = os.getenv("ML_SERVICE_URL")
         if not ml_svc:
             await update.message.reply_text(
-                "⚠️ Model not trained yet\\. Run `python ml/train\\.py` first\\.",
-                parse_mode="MarkdownV2",
+                "⚠️ Model not trained yet. Run <code>python ml/train.py</code> first.",
+                parse_mode="HTML",
                 reply_markup=back_to_menu(),
             )
             return ConversationHandler.END
@@ -101,8 +101,8 @@ async def predict_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     ctx.user_data.clear()
     log.info("user %d started /predict", update.effective_user.id)
     await update.message.reply_text(
-        "🔍 *Car Price Estimator*\n\nStep 1/6 — What year was the car made? \\(e\\.g\\. `2019`\\)",
-        parse_mode="MarkdownV2",
+        "🔍 <b>Car Price Estimator</b>\n\nStep 1/6 — What year was the car made? (e.g. <code>2019</code>)",
+        parse_mode="HTML",
         reply_markup=ReplyKeyboardRemove(),
     )
     return YEAR
@@ -117,8 +117,8 @@ async def get_year(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return YEAR
     ctx.user_data["year"] = year
     await update.message.reply_text(
-        "Step 2/6 — 📏 Mileage in km? \\(e\\.g\\. `85000`\\)",
-        parse_mode="MarkdownV2",
+        "Step 2/6 — 📏 Mileage in km? (e.g. <code>85000</code>)",
+        parse_mode="HTML",
     )
     return MILEAGE
 
@@ -132,8 +132,8 @@ async def get_mileage(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return MILEAGE
     ctx.user_data["mileage_km"] = km
     await update.message.reply_text(
-        "Step 3/6 — ⚡ Engine power in kW? \\(e\\.g\\. `110` for \\~150 hp\\)",
-        parse_mode="MarkdownV2",
+        "Step 3/6 — ⚡ Engine power in kW? (e.g. <code>110</code> for ~150 hp)",
+        parse_mode="HTML",
     )
     return ENGINE
 
@@ -165,8 +165,8 @@ async def get_fuel(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 async def get_transmission(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     ctx.user_data["transmission"] = update.message.text.strip()
     await update.message.reply_text(
-        "Step 6/6 — 🚗 Brand and model? \\(e\\.g\\. `BMW 3 Series`\\)",
-        parse_mode="MarkdownV2",
+        "Step 6/6 — 🚗 Brand and model? (e.g. <code>BMW 3 Series</code>)",
+        parse_mode="HTML",
         reply_markup=ReplyKeyboardRemove(),
     )
     return BRAND
@@ -203,27 +203,27 @@ async def get_brand(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     market_line = ""
     if avg_price:
         diff = price - avg_price
-        sign = "\\+" if diff >= 0 else "\\-"
-        market_line = f"\n📊 vs market avg: `{sign}€{abs(diff):,.0f}`"
+        sign = "+" if diff >= 0 else "-"
+        market_line = f"\n📊 vs market avg: <code>{sign}€{abs(diff):,.0f}</code>"
 
     brand_line = ""
     if brand_avg:
         diff2 = price - brand_avg
-        sign2 = "\\+" if diff2 >= 0 else "\\-"
-        brand_line = f"\n🏷️ vs {d['brand']} avg: `{sign2}€{abs(diff2):,.0f}`"
+        sign2 = "+" if diff2 >= 0 else "-"
+        brand_line = f"\n🏷️ vs {d['brand']} avg: <code>{sign2}€{abs(diff2):,.0f}</code>"
 
     shap_block = _format_shap(contributions, d)
 
     msg = (
-        f"✅ *Estimated fair price: €{price:,.0f}*\n\n"
-        f"_{d['brand']} {d['model']} · {d['year']} · "
-        f"{d['mileage_km']:,} km · {d['power_kw']}kW {d['fuel_type']} · {d['transmission']}_"
+        f"✅ <b>Estimated fair price: €{price:,.0f}</b>\n\n"
+        f"<i>{d['brand']} {d['model']} · {d['year']} · "
+        f"{d['mileage_km']:,} km · {d['power_kw']}kW {d['fuel_type']} · {d['transmission']}</i>"
         f"{market_line}{brand_line}"
         f"{shap_block}"
     )
     log.info("predict: user %d → €%.0f for %s %s %d",
              update.effective_user.id, price, d["brand"], d["model"], d["year"])
-    await update.message.reply_text(msg, parse_mode="MarkdownV2", reply_markup=back_to_menu())
+    await update.message.reply_text(msg, parse_mode="HTML", reply_markup=back_to_menu())
     return ConversationHandler.END
 
 
