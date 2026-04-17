@@ -39,7 +39,7 @@ def _migrate():
         for col, dtype in new_cols:
             if col not in existing:
                 try:
-                    conn.execute(text(f"ALTER TABLE raw_listings ADD COLUMN IF NOT EXISTS {col} {dtype}"))
+                    conn.execute(text(f"ALTER TABLE raw_listings ADD COLUMN {col} {dtype}"))
                     log.info("migrated: added raw_listings.%s", col)
                 except Exception as e:
                     log.warning("migration skipped %s: %s", col, e)

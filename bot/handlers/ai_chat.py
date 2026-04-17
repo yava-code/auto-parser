@@ -172,6 +172,8 @@ async def ask_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     try:
         usage = _get_or_create_usage(session, user_id)
         left = _uses_left(usage)
+        free_left = usage.free_uses_left
+        paid = usage.paid_uses
         session.commit()
     finally:
         session.close()
@@ -184,7 +186,7 @@ async def ask_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         )
         return ConversationHandler.END
 
-    free_tag = f"🎁 {usage.free_uses_left} free" if usage.free_uses_left > 0 else f"💎 {usage.paid_uses} paid"
+    free_tag = f"🎁 {free_left} free" if free_left > 0 else f"💎 {paid} paid"
     await update.message.reply_text(
         f"🤖 *AI Car Assistant* \\({free_tag} uses left\\)\n\n"
         "Ask me anything about cars, prices, or listings\\.\n"

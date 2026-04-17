@@ -150,9 +150,9 @@ async def _show_brand_results(msg: Message, brand: str, edit: bool = False):
         log.info("search '%s': %d results", brand, count)
         text = "\n".join(lines)
         if edit:
-            await msg.edit_text(text, parse_mode="MarkdownV2", reply_markup=back_to_menu())
+            await msg.edit_text(text, parse_mode="Markdown", reply_markup=back_to_menu())
         else:
-            await msg.reply_text(text, parse_mode="MarkdownV2", reply_markup=back_to_menu())
+            await msg.reply_text(text, parse_mode="Markdown", reply_markup=back_to_menu())
     finally:
         session.close()
 
