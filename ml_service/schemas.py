@@ -17,5 +17,13 @@ class PredictResponse(BaseModel):
 
 class ExplainResponse(BaseModel):
     price_eur: float
+    lower_95: float
+    upper_95: float
     base_value: float
     contributions: dict[str, float]
+
+
+class IntervalResponse(BaseModel):
+    point: float
+    lower_95: float
+    upper_95: float

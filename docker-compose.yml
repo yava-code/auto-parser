@@ -25,19 +25,42 @@ services:
       timeout: 3s
       retries: 10
 
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.13.0
+    command: >
+      mlflow server
+      --backend-store-uri postgresql://cars:cars@postgres:5432/cars
+      --default-artifact-root /mlflow/artifacts
+      --host 0.0.0.0
+      --port 5000
+    environment:
+      MLFLOW_BACKEND_STORE_URI: postgresql://cars:cars@postgres:5432/cars
+    volumes:
+      - mlflow_artifacts:/mlflow/artifacts
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
   ml_service:
     build: .
     command: python -m uvicorn ml_service.main:app --host 0.0.0.0 --port 8000
     env_file: .env
     environment:
       DATABASE_URL: postgresql://cars:cars@postgres:5432/cars
+      MLFLOW_TRACKING_URI: http://mlflow:5000
     volumes:
       - ./models:/app/models
+      - ./assets:/app/assets
     ports:
       - "8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
+      mlflow:
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
       interval: 10s
@@ -71,8 +94,10 @@ services:
     environment:
       DATABASE_URL: postgresql://cars:cars@postgres:5432/cars
       REDIS_URL: redis://redis:6379/0
+      MLFLOW_TRACKING_URI: http://mlflow:5000
     volumes:
       - ./models:/app/models
+      - ./assets:/app/assets
     depends_on:
       postgres:
         condition: service_healthy
@@ -96,3 +121,4 @@ services:
 
 volumes:
   pgdata:
+  mlflow_artifacts:

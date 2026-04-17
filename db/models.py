@@ -42,6 +42,7 @@ class CleanListing(Base):
     trans_enc = Column(Integer)
     price_eur = Column(Float)
     predicted_price = Column(Float)
+    anomaly_score = Column(Float)   # lower = more anomalous (IsolationForest decision score)
 
 
 class UserUsage(Base):

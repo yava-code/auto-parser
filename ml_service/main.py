@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from ml_service.schemas import PredictRequest, PredictResponse, ExplainResponse
+from ml_service.schemas import PredictRequest, PredictResponse, ExplainResponse, IntervalResponse
 
 logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -93,6 +93,26 @@ def predict_explain(req: PredictRequest):
 
     _track("explain", time.perf_counter() - t0)
     return ExplainResponse(**result)
+
+
+@app.post("/predict/interval", response_model=IntervalResponse)
+def predict_interval_endpoint(req: PredictRequest):
+    from ml.predict import predict_interval, model_ready
+    if not model_ready():
+        raise HTTPException(503, "Model not trained yet")
+
+    t0 = time.perf_counter()
+    try:
+        result = predict_interval(
+            req.brand, req.model_name, req.year,
+            req.mileage_km, req.power_kw, req.fuel_type, req.transmission,
+        )
+    except Exception as e:
+        log.error("interval predict error: %s", e)
+        raise HTTPException(500, f"Interval prediction failed: {e}")
+
+    _track("interval", time.perf_counter() - t0)
+    return IntervalResponse(**result)
 
 
 @app.get("/metrics")

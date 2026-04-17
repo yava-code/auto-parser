@@ -20,6 +20,7 @@ from bot.handlers.predict import predict_conv_handler
 from bot.handlers.search import search_conv_handler, top5_command
 from bot.handlers.ai_chat import ai_conv_handler
 from bot.handlers.alert import alert_conv_handler, my_alerts, delete_alert_callback
+from bot.handlers.anomalies import anomalies, send_anomalies
 from bot.handlers.buy_stars import send_invoice, precheckout, successful_payment, buy_callback
 from bot.keyboards import main_menu
 
@@ -30,6 +31,8 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")          # e.g. https://yourdomain.com
+WEBHOOK_PORT = int(os.getenv("WEBHOOK_PORT", "8443"))
 
 
 async def menu_callback(update, ctx):
@@ -47,20 +50,17 @@ async def menu_callback(update, ctx):
         await send_top_deals(query.message)
     elif data == "cmd_predict":
         await query.message.reply_text(
-            "Use /predict to start the price estimator\\.",
-            parse_mode="MarkdownV2",
+            "Use /predict to start the price estimator.",
         )
     elif data == "cmd_search":
         await query.message.reply_text(
-            "Use /search \\<brand\\> — e\\.g\\. `/search BMW`\n"
-            "or /top5 \\<brand\\> for a quick top\\-5 view\\.",
-            parse_mode="MarkdownV2",
+            "Use /search <brand> — e.g. /search BMW\n"
+            "or /top5 <brand> for a quick top-5 view."
         )
     elif data == "cmd_ai":
-        await query.message.reply_text(
-            "Use /ask to chat with the AI assistant\\.",
-            parse_mode="MarkdownV2",
-        )
+        await query.message.reply_text("Use /ask to chat with the AI assistant.")
+    elif data == "cmd_anomalies":
+        await send_anomalies(query.message)
 
 
 def main():
@@ -81,7 +81,7 @@ def main():
 
     app = Application.builder().token(TOKEN).build()
 
-    # conversation handlers first (priority)
+    # conversation handlers first (priority over plain commands)
     app.add_handler(predict_conv_handler())
     app.add_handler(search_conv_handler())
     app.add_handler(ai_conv_handler())
@@ -95,6 +95,7 @@ def main():
     app.add_handler(CommandHandler("top5", top5_command))
     app.add_handler(CommandHandler("buy", send_invoice))
     app.add_handler(CommandHandler("myalerts", my_alerts))
+    app.add_handler(CommandHandler("anomalies", anomalies))
 
     # inline button callbacks
     app.add_handler(CallbackQueryHandler(menu_callback, pattern=r"^cmd_"))
@@ -105,8 +106,18 @@ def main():
     app.add_handler(PreCheckoutQueryHandler(precheckout))
     app.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment))
 
-    log.info("Bot starting — polling...")
-    app.run_polling(drop_pending_updates=True)
+    if WEBHOOK_URL:
+        log.info("Starting in webhook mode: %s", WEBHOOK_URL)
+        app.run_webhook(
+            listen="0.0.0.0",
+            port=WEBHOOK_PORT,
+            url_path=TOKEN,
+            webhook_url=f"{WEBHOOK_URL}/{TOKEN}",
+            drop_pending_updates=True,
+        )
+    else:
+        log.info("Starting in polling mode")
+        app.run_polling(drop_pending_updates=True)
 
 
 if __name__ == "__main__":

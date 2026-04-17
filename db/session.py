@@ -20,26 +20,30 @@ def init_db():
     _migrate()
 
 
-def _migrate():
-    """Add new columns to existing tables without dropping data."""
+def _add_columns(conn, table: str, new_cols: list[tuple[str, str]]):
+    insp = inspect(engine)
     try:
-        insp = inspect(engine)
-        existing = {c["name"] for c in insp.get_columns("raw_listings")}
+        existing = {c["name"] for c in insp.get_columns(table)}
     except exc.NoSuchTableError:
         return
+    for col, dtype in new_cols:
+        if col not in existing:
+            try:
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {col} {dtype}"))
+                log.info("migrated: added %s.%s", table, col)
+            except Exception as e:
+                log.warning("migration skipped %s.%s: %s", table, col, e)
 
-    new_cols = [
-        ("color", "VARCHAR"),
-        ("body_type", "VARCHAR"),
-        ("location", "VARCHAR"),
-        ("engine_cc", "FLOAT"),
-        ("doors", "INTEGER"),
-    ]
+
+def _migrate():
     with engine.begin() as conn:
-        for col, dtype in new_cols:
-            if col not in existing:
-                try:
-                    conn.execute(text(f"ALTER TABLE raw_listings ADD COLUMN {col} {dtype}"))
-                    log.info("migrated: added raw_listings.%s", col)
-                except Exception as e:
-                    log.warning("migration skipped %s: %s", col, e)
+        _add_columns(conn, "raw_listings", [
+            ("color", "VARCHAR"),
+            ("body_type", "VARCHAR"),
+            ("location", "VARCHAR"),
+            ("engine_cc", "FLOAT"),
+            ("doors", "INTEGER"),
+        ])
+        _add_columns(conn, "clean_listings", [
+            ("anomaly_score", "FLOAT"),
+        ])
