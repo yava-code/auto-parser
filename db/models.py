@@ -1,8 +1,5 @@
-import os
 from datetime import datetime
-from sqlalchemy import (
-    Column, Integer, String, Float, DateTime, ForeignKey, create_engine
-)
+from sqlalchemy import Column, Integer, BigInteger, String, Float, DateTime, ForeignKey
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -22,6 +19,11 @@ class RawListing(Base):
     transmission = Column(String)
     price_eur = Column(Float)
     scraped_at = Column(DateTime, default=datetime.utcnow)
+    color = Column(String)
+    body_type = Column(String)
+    location = Column(String)
+    engine_cc = Column(Float)
+    doors = Column(Integer)
 
 
 class CleanListing(Base):
@@ -39,4 +41,16 @@ class CleanListing(Base):
     fuel_enc = Column(Integer)
     trans_enc = Column(Integer)
     price_eur = Column(Float)
-    predicted_price = Column(Float)  # filled after training
+    predicted_price = Column(Float)
+
+
+class UserUsage(Base):
+    __tablename__ = "user_usage"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    telegram_id = Column(BigInteger, unique=True, nullable=False)
+    free_uses_left = Column(Integer, default=5, nullable=False)
+    paid_uses = Column(Integer, default=0, nullable=False)
+    total_uses = Column(Integer, default=0, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow)

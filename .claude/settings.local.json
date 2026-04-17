@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "Bash(python -m pytest tests/test_parser.py tests/test_ai_utils.py -v)",
+      "Bash(python -m pytest tests/test_usage.py tests/test_preprocess.py -v)"
+    ]
+  }
+}
